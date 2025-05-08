@@ -11,10 +11,12 @@ class HomeViewController: UIViewController {
     
     // MARK: - UI Elements
     @IBOutlet weak var dateCollectionView: UICollectionView!
-   
+    @IBOutlet weak var todoCollectionView: UICollectionView!
+    
     
     // MARK: - Properties
-    var date = ["1 Ocak", "2 Ocak", "3 Ocak", "4 Ocak", "5 Ocak", "6 Ocak", "7 Ocak", "8 Ocak", "9 Ocak", "10 Ocak"]
+    var date = ["1 Ocak", "2 Ocak", "3 Ocak", "4 Ocak", "5 Ocak", "6 Ocak", "7 Ocak", "8 Ocak", "9 Ocak", "10 Ocak",
+                "11 Ocak", "12 Ocak", "31 Ocak", "14 Ocak", "15 Ocak", "16 Ocak", "17 Ocak", "18 Ocak", "19 Ocak", "20 Ocak"]
     var selectedIndexPath: IndexPath?
     // MARK: - Life Cycle
     override func viewDidLoad() {
@@ -23,6 +25,10 @@ class HomeViewController: UIViewController {
         dateCollectionView.delegate = self
         dateCollectionView.dataSource = self
         dateCollectionView.showsHorizontalScrollIndicator = false
+        
+        todoCollectionView.delegate = self
+        todoCollectionView.dataSource = self
+        todoCollectionView.showsVerticalScrollIndicator = false
     }
     
     override func viewDidLayoutSubviews() {
@@ -35,17 +41,26 @@ class HomeViewController: UIViewController {
     // MARK: - Actions
 }
 
-// MARK: - UICollectionViewDelegate & UICollectionViewDataSource & UICollectionViewDelegateFlowLayout
+// MARK: -  DateCollectionView & TodoCollectionView : UICollectionViewDelegate & UICollectionViewDataSource & UICollectionViewDelegateFlowLayout
 extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return date.count
+        if collectionView == dateCollectionView {
+            return date.count
+        }
+        return 10
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let item = dateCollectionView.dequeueReusableCell(withReuseIdentifier: "date", for: indexPath) as? DateCollectionViewCell else { return UICollectionViewCell() }
-        item.dateLabel.text = date[indexPath.row]
-        return item
+        
+        if collectionView == dateCollectionView {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "date", for: indexPath) as! DateCollectionViewCell
+            cell.dateLabel.text = date[indexPath.row]
+            return cell
+        } else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "todo", for: indexPath) as! TodoCollectionViewCell
+            return cell
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -53,11 +68,11 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 60, height: 55)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        if collectionView == dateCollectionView {
+            return CGSize(width: 50, height: 55)
+        } else {
+            return CGSize(width: 373, height: 52)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
