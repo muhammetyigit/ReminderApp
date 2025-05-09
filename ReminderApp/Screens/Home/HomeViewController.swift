@@ -39,6 +39,9 @@ class HomeViewController: UIViewController {
     // MARK: - Functions
     
     // MARK: - Actions
+    @IBAction func todoButtonTapped(_ sender: UIButton) {
+    }
+    
 }
 
 // MARK: -  DateCollectionView & TodoCollectionView : UICollectionViewDelegate & UICollectionViewDataSource & UICollectionViewDelegateFlowLayout
@@ -78,6 +81,7 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 5
     }
+    
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let centerX = dateCollectionView.contentOffset.x + dateCollectionView.bounds.size.width / 2
