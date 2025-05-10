@@ -13,6 +13,8 @@ protocol HomeViewControllerInput {
 
 class HomeViewController: UIViewController {
     
+    
+    
     // MARK: - UI Elements
     @IBOutlet weak var dateCollectionView: UICollectionView!
     @IBOutlet weak var todoCollectionView: UICollectionView!
@@ -60,6 +62,43 @@ class HomeViewController: UIViewController {
         }
     }
     
+    func formattedDateString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "E, dd MMMM"
+        return formatter.string(from: date)
+    }
+    
+    func formattedTimeString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+    
+    @objc func dismissPopup() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.backgroundView.alpha = 0
+            self.popupView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }) { _ in
+            self.backgroundView.removeFromSuperview()
+        }
+    }
+    
+    func showEmptyFieldWarning() {
+        let alert = UIAlertController(title: "Warning", message: "This field cannot be left empty! Please enter a task.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Okay", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func filterTasks() {
+        filteredTasks = allTask.filter {
+            Calendar.current.isDate($0.date!, inSameDayAs: selectedDate)
+        }
+        todoCollectionView.reloadData()
+    }
+    
+    // MARK: - UI Desing
     func showPopup() {
         backgroundView = UIView(frame: view.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -189,43 +228,6 @@ class HomeViewController: UIViewController {
         })
     }
     
-    
-    func formattedDateString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "E, dd MMMM"
-        return formatter.string(from: date)
-    }
-    
-    func formattedTimeString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: date)
-    }
-    
-    @objc func dismissPopup() {
-        UIView.animate(withDuration: 0.3, animations: {
-            self.backgroundView.alpha = 0
-            self.popupView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        }) { _ in
-            self.backgroundView.removeFromSuperview()
-        }
-    }
-    
-    func showEmptyFieldWarning() {
-        let alert = UIAlertController(title: "Warning", message: "This field cannot be left empty! Please enter a task.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Okay", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
-    }
-    
-    func filterTasks() {
-        filteredTasks = allTask.filter {
-            Calendar.current.isDate($0.date!, inSameDayAs: selectedDate)
-        }
-        todoCollectionView.reloadData()
-    }
-    
     // MARK: - Actions
     @IBAction func todoButtonTapped(_ sender: UIButton) {
         showPopup()
@@ -273,6 +275,7 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         let item = filteredTasks[indexPath.item]
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "todo", for: indexPath) as! TodoCollectionViewCell
         cell.taskLabel.text = item.text
+
         return cell
     }
     

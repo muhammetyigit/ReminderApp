@@ -162,7 +162,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="373" height="52"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Eka-Nu-HWm">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="Eka-Nu-HWm">
                                                     <rect key="frame" x="16" y="16" width="291" height="20"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="291" id="hLn-RQ-yID"/>
@@ -172,29 +172,29 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lHZ-uP-ly8">
-                                                    <rect key="frame" x="315" y="8" width="50" height="36"/>
+                                                    <rect key="frame" x="315" y="4" width="50" height="44"/>
                                                     <constraints>
-                                                        <constraint firstAttribute="height" constant="50" id="NqQ-mt-kg7"/>
+                                                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="Jyp-AV-TvD"/>
+                                                        <constraint firstAttribute="height" constant="44" id="NqQ-mt-kg7"/>
                                                         <constraint firstAttribute="width" constant="50" id="PNM-Ys-lDo"/>
+                                                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="44" id="zSS-TU-e2A"/>
                                                     </constraints>
+                                                    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                     <state key="normal">
-                                                        <color key="titleShadowColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                        <imageReference key="image" image="circle" catalog="system" symbolScale="large" renderingMode="original"/>
+                                                        <imageReference key="image" image="circle" catalog="system" symbolScale="large"/>
                                                     </state>
-                                                    <buttonConfiguration key="configuration" style="plain">
-                                                        <imageReference key="image" image="circle" catalog="system" symbolScale="large" renderingMode="original"/>
-                                                        <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                    </buttonConfiguration>
+                                                    <connections>
+                                                        <action selector="checkButtonTapped:" destination="kIa-wH-WFD" eventType="touchUpInside" id="ZnL-83-779"/>
+                                                    </connections>
                                                 </button>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             <constraints>
-                                                <constraint firstItem="lHZ-uP-ly8" firstAttribute="top" secondItem="Xok-Wh-gWX" secondAttribute="top" constant="8" id="3bH-OW-h3j"/>
                                                 <constraint firstItem="Eka-Nu-HWm" firstAttribute="top" secondItem="Xok-Wh-gWX" secondAttribute="top" constant="16" id="EgM-6i-yZN"/>
-                                                <constraint firstAttribute="trailing" secondItem="lHZ-uP-ly8" secondAttribute="trailing" constant="8" id="LrA-1d-kBD"/>
                                                 <constraint firstItem="Eka-Nu-HWm" firstAttribute="leading" secondItem="Xok-Wh-gWX" secondAttribute="leading" constant="16" id="R2f-Rx-Az5"/>
-                                                <constraint firstAttribute="bottom" secondItem="lHZ-uP-ly8" secondAttribute="bottom" constant="8" id="WXP-zd-W0s"/>
+                                                <constraint firstItem="lHZ-uP-ly8" firstAttribute="centerY" secondItem="Eka-Nu-HWm" secondAttribute="centerY" id="UF8-wb-K3S"/>
+                                                <constraint firstItem="lHZ-uP-ly8" firstAttribute="leading" secondItem="Eka-Nu-HWm" secondAttribute="trailing" constant="8" symbolic="YES" id="eeE-53-NuB"/>
                                                 <constraint firstItem="Eka-Nu-HWm" firstAttribute="centerY" secondItem="Xok-Wh-gWX" secondAttribute="centerY" id="wBA-eN-0Po"/>
                                             </constraints>
                                         </collectionViewCellContentView>
