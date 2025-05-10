@@ -9,6 +9,9 @@ import UIKit
 
 class TodoCollectionViewCell: UICollectionViewCell {
     
+    @IBOutlet weak var taskLabel: UILabel!
+    @IBOutlet weak var checkButton: UIButton!
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         layer.borderWidth = 1

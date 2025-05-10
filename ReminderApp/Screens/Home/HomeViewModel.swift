@@ -6,3 +6,11 @@
 //
 
 import Foundation
+
+protocol HomeViewModelOutput {
+    func popUpShow()
+}
+
+class HomeViewModel {
+    
+}
