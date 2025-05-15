@@ -7,13 +7,7 @@
 
 import UIKit
 
-protocol HomeViewControllerInput {
-    func todoButtonTapped()
-}
-
 class HomeViewController: UIViewController {
-    
-    
     
     // MARK: - UI Elements
     @IBOutlet weak var dateCollectionView: UICollectionView!
@@ -21,13 +15,14 @@ class HomeViewController: UIViewController {
     var newTodoField: UITextField!
     
     // MARK: - Properties
-    var dates: [Date] = []
+    var viewModel = HomeViewModel()
     var selectedIndexPath: IndexPath?
     var popupView: UIView!
     var backgroundView: UIView!
-    var allTask = [TaskModel]()
     var selectedDate: Date = Date()
     var filteredTasks: [TaskModel] = []
+    var isEditingTasks = false
+    var isSortedByDone: Bool?
     
     // MARK: - Life Cycle
     override func viewDidLoad() {
@@ -41,41 +36,15 @@ class HomeViewController: UIViewController {
         todoCollectionView.dataSource = self
         todoCollectionView.showsVerticalScrollIndicator = false
         
-        generateNext30Days()
-        filterTasks()
+        viewModel.generateNext30Days()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         scrollViewDidScroll(dateCollectionView)
-        
     }
     
     // MARK: - Functions
-    func generateNext30Days() {
-        let calendar = Calendar.current
-        let today = Date()
-        for i in 0..<30 {
-            if let date = calendar.date(byAdding: .day, value: i, to: today) {
-                dates.append(date)
-            }
-        }
-    }
-    
-    func formattedDateString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "E, dd MMMM"
-        return formatter.string(from: date)
-    }
-    
-    func formattedTimeString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: date)
-    }
-    
     @objc func dismissPopup() {
         UIView.animate(withDuration: 0.3, animations: {
             self.backgroundView.alpha = 0
@@ -91,14 +60,17 @@ class HomeViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    func filterTasks() {
-        filteredTasks = allTask.filter {
-            Calendar.current.isDate($0.date!, inSameDayAs: selectedDate)
+    func filterTask(sorted: Bool = true) {
+        filteredTasks = TaskManager.shared.tasks.filter { task in
+            return Calendar.current.isDate(task.date!, inSameDayAs: selectedDate)
         }
-        todoCollectionView.reloadData()
+        
+        if sorted {
+            filteredTasks.sort { !$0.isDone && $1.isDone }
+        }
     }
     
-    // MARK: - UI Desing
+    // MARK: - Popup UI Design
     func showPopup() {
         backgroundView = UIView(frame: view.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -110,7 +82,6 @@ class HomeViewController: UIViewController {
         blurEffectView.frame = backgroundView.bounds
         blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         backgroundView.addSubview(blurEffectView)
-        
         
         blurEffectView.alpha = 0.6
         
@@ -154,7 +125,7 @@ class HomeViewController: UIViewController {
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
         dateLabel.textColor = .white
         dateLabel.font = .systemFont(ofSize: 18)
-        dateLabel.text = "📅 " + formattedDateString(from: Date())
+        dateLabel.text = "📅 " + viewModel.formattedDateString(from: Date())
         popupView.addSubview(dateLabel)
         
         // Time Label
@@ -162,7 +133,7 @@ class HomeViewController: UIViewController {
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = .white
         timeLabel.font = .systemFont(ofSize: 18)
-        timeLabel.text = "🕒 " + formattedTimeString(from: Date())
+        timeLabel.text = "🕒 " + viewModel.formattedTimeString(from: Date())
         popupView.addSubview(timeLabel)
         
         // Text Field
@@ -228,6 +199,33 @@ class HomeViewController: UIViewController {
         })
     }
     
+    func updateTaskLabel(label: UILabel, text: String, isDone: Bool) {
+        if isDone {
+            let attrText = NSAttributedString(string: text, attributes: [
+                .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+                .foregroundColor: UIColor.gray
+            ])
+            label.attributedText = attrText
+        } else {
+            label.attributedText = NSAttributedString(string: text, attributes: [
+                .foregroundColor: UIColor.white
+            ])
+        }
+    }
+    
+    @IBAction func editButtonTapped() {
+        isEditingTasks.toggle()
+        
+        todoCollectionView.visibleCells.forEach { cell in
+            if let taskCell = cell as? TodoCollectionViewCell {
+                print("GÖRÜNÜYOR: \(taskCell.taskLabel.text ?? "")")
+                taskCell.setDeleteButtonVisible(isEditingTasks)
+            } else {
+                print("Dönüştürülemedi: \(cell)")
+            }
+        }
+    }
+    
     // MARK: - Actions
     @IBAction func todoButtonTapped(_ sender: UIButton) {
         showPopup()
@@ -242,9 +240,9 @@ class HomeViewController: UIViewController {
         }
         
         let newTask = TaskModel(text: text, date: selectedDate)
-        allTask.append(newTask)
+        TaskManager.shared.addTask(newTask)
+        filterTask()
         todoCollectionView.reloadData()
-        filterTasks()
         dismissPopup()
     }
 }
@@ -254,7 +252,7 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == dateCollectionView {
-            return dates.count
+            return viewModel.dates.count
         }
         return filteredTasks.count
     }
@@ -268,32 +266,38 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         }()
         
         if collectionView == dateCollectionView {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "date", for: indexPath) as! DateCollectionViewCell
-            cell.dateLabel.text = dateFormatter.string(from: dates[indexPath.item])
-            return cell
+            let dateCell = collectionView.dequeueReusableCell(withReuseIdentifier: "date", for: indexPath) as! DateCollectionViewCell
+            dateCell.dateLabel.text = dateFormatter.string(from: viewModel.dates[indexPath.item])
+            return dateCell
         }
-        let item = filteredTasks[indexPath.item]
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "todo", for: indexPath) as! TodoCollectionViewCell
-        cell.taskLabel.text = item.text
-
-        return cell
+        let taskCell = collectionView.dequeueReusableCell(withReuseIdentifier: "task", for: indexPath) as! TodoCollectionViewCell
+        
+        let task = filteredTasks[indexPath.item]
+        taskCell.delegate = self
+        taskCell.buttonConfigure(isCheck: task.isDone)
+        updateTaskLabel(label: taskCell.taskLabel, text: task.text ?? "", isDone: task.isDone)
+        return taskCell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == dateCollectionView {
             collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
-            self.selectedDate = dates[indexPath.row]
-            print(selectedDate)
-            filterTasks()
+            self.selectedDate = viewModel.dates[indexPath.row]
+            filterTask()
+            todoCollectionView.reloadData()
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if collectionView == dateCollectionView {
             return CGSize(width: 50, height: 55)
-        } else {
-            return CGSize(width: 373, height: 52)
         }
+        return CGSize(width: 300, height: 52)
+        
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
+        return collectionView != todoCollectionView
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -338,9 +342,63 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 }
             }
         }
+        
         if let indexPath = closestIndexPath {
-            selectedDate = dates[indexPath.item]
-            filterTasks()
+            let newDate = viewModel.dates[indexPath.item]
+            
+            if !Calendar.current.isDate(selectedDate, inSameDayAs: newDate) {
+                selectedDate = newDate
+                filterTask()
+                todoCollectionView.reloadData()
+            }
         }
+    }
+    
+    
+    
+}
+
+extension HomeViewController: TodoButtonInput {
+    
+    func congifureButton(cell: TodoCollectionViewCell) {
+        guard let indexPath = todoCollectionView.indexPath(for: cell) else { return }
+        
+        let selectedTask = filteredTasks[indexPath.item]
+        
+        if let originalIndex = TaskManager.shared.tasks.firstIndex(where: { $0.id == selectedTask.id }) {
+            TaskManager.shared.tasks[originalIndex].isDone.toggle()
+            
+            let newStatus = TaskManager.shared.tasks[originalIndex].isDone
+            
+            if newStatus {
+                let alert = UIAlertController(title: "Mission Completed", message: "Move completed tasks to the bottom?", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { _ in
+                    self.filterTask(sorted: true)
+                    self.todoCollectionView.reloadData()
+                }))
+                alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: { _ in
+                    self.filterTask(sorted: false)
+                    self.todoCollectionView.reloadData()
+                }))
+                self.present(alert, animated: true)
+            } else {
+                self.filterTask(sorted: false)
+                self.todoCollectionView.reloadData()
+            }
+        }
+    }
+        
+    func deleteTask(cell: TodoCollectionViewCell) {
+        guard let indexPath = todoCollectionView.indexPath(for: cell) else { return }
+        
+        let taskToDelete = filteredTasks[indexPath.item]
+        
+        if let originalIndex = TaskManager.shared.tasks.firstIndex(where: { $0.id == taskToDelete.id }) {
+            TaskManager.shared.tasks.remove(at: originalIndex)
+        }
+        
+        filterTask()
+        
+        todoCollectionView.deleteItems(at: [indexPath])
     }
 }

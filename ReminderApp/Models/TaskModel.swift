@@ -7,8 +7,13 @@
 
 import Foundation
 
-struct TaskModel {
+struct TaskModel: Equatable {
+    let id: UUID = UUID()
     var text: String?
     var isDone: Bool = false
     var date: Date?
+
+    static func == (lhs: TaskModel, rhs: TaskModel) -> Bool {
+        return lhs.id == rhs.id
+    }
 }
